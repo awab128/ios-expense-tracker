@@ -1,0 +1,33 @@
+workflows:
+  ios-build:
+    name: iOS Unsigned Build
+    environment:
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install dependencies
+        script: |
+          cd ios
+          pod install
+      - name: Build .ipa without signing
+        script: |
+          xcodebuild clean -workspace ios/TRKEBATTRANSACTIONAPP.xcworkspace \
+            -scheme TRKEBATTRANSACTIONAPP \
+            -configuration Release
+
+          xcodebuild -workspace ios/TRKEBATTRANSACTIONAPP.xcworkspace \
+            -scheme TRKEBATTRANSACTIONAPP \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath $CM_BUILD_DIR/Build.xcarchive \
+            archive
+
+          xcodebuild -exportArchive \
+            -archivePath $CM_BUILD_DIR/Build.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath $CM_BUILD_DIR/ipa \
+            -allowProvisioningUpdates
+    artifacts:
+      - ipa/*.ipa
+      - $CM_BUILD_DIR/ipa/**/*.ipa
+      - $CM_BUILD_DIR/Build.xcarchive
